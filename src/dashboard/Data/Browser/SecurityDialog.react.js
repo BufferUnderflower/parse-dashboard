@@ -6,7 +6,6 @@
  * the root directory of this source tree.
  */
 import PropTypes         from 'lib/PropTypes'; 
-import Icon              from 'components/Icon/Icon.react';
 import Parse             from 'parse'
 import ParseApp          from 'lib/ParseApp';
 import PermissionsDialog from 'components/PermissionsDialog/PermissionsDialog.react';
@@ -43,23 +42,34 @@ export default class SecurityDialog extends React.Component {
     this.state = { open: false };
   }
 
+  /**
+   * Allows opening this dialog by reference
+   */
+  handleOpen(){
+    if (!this.props.disabled) {
+      this.setState({ open: true });
+    }
+  }
+
   render() {
     let dialog = null;
     let parseServerSupportsPointerPermissions = this.context.currentApp.serverInfo.features.schemas.editClassLevelPermissions;
     if (this.props.perms && this.state.open) {
       dialog = (
         <PermissionsDialog
-          title='Edit Class Level Permissions'
+          title='Edit Class Level Pesrmissions'
           enablePointerPermissions={parseServerSupportsPointerPermissions}
           advanced={true}
           confirmText='Save CLP'
           details={<a target="_blank" href='http://docs.parseplatform.org/ios/guide/#security'>Learn more about CLPs and app security</a>}
           permissions={this.props.perms}
-          validateEntry={entry => validateEntry(this.props.userPointers, entry, parseServerSupportsPointerPermissions)}
+          validateEntry={entry => 
+            validateEntry(this.props.userPointers, entry, parseServerSupportsPointerPermissions)}
           onCancel={() => {
             this.setState({ open: false });
           }}
-          onConfirm={perms => this.props.onChangeCLP(perms).then(() => this.setState({ open: false }))}
+          onConfirm={perms => 
+            this.props.onChangeCLP(perms).then(() => this.setState({ open: false }))}
         />
       );
     }
@@ -67,20 +77,8 @@ export default class SecurityDialog extends React.Component {
     if (this.props.disabled) {
       classes.push(styles.toolbarButtonDisabled);
     }
-    let onClick = null;
-    if (!this.props.disabled) {
-      onClick = () => {
-        this.setState({ open: true });
-        this.props.setCurrent(null);
-      };
-    }
-    return (
-      <div className={classes.join(' ')} onClick={onClick}>
-        <Icon width={14} height={14} name='locked-solid' />
-        <span>Security</span>
-        {dialog}
-      </div>
-    );
+  
+    return dialog;
   }
 }
 

@@ -12,11 +12,14 @@ import ColumnsConfiguration
 import Icon           from 'components/Icon/Icon.react';
 import MenuItem       from 'components/BrowserMenu/MenuItem.react';
 import prettyNumber   from 'lib/prettyNumber';
-import React          from 'react';
-import SecurityDialog from 'dashboard/Data/Browser/SecurityDialog.react';
+import React,
+       { useRef }     from 'react';
 import Separator      from 'components/BrowserMenu/Separator.react';
 import styles         from 'dashboard/Data/Browser/Browser.scss';
 import Toolbar        from 'components/Toolbar/Toolbar.react';
+import SecurityDialog from 'dashboard/Data/Browser/SecurityDialog.react';
+import SecureFieldsDialog 
+                      from 'dashboard/Data/Browser/SecureFieldsDialog.react';
 
 let BrowserToolbar = ({
   className,
@@ -143,6 +146,7 @@ let BrowserToolbar = ({
     onClick = null;
   }
 
+  const columns = {};
   const userPointers = [];
   const schemaSimplifiedData = {};
   const classSchema = schema.data.get('classes').get(classNameForEditors);
@@ -153,6 +157,8 @@ let BrowserToolbar = ({
         targetClass,
       };
 
+      columns[col] = { type, targetClass };
+
       if (col === 'objectId' || isUnique && col !== uniqueField) {
         return;
       }
@@ -162,26 +168,33 @@ let BrowserToolbar = ({
     });
   }
 
+  let clpDialogRef = useRef(null);
+  let protectedDialogRef = useRef(null);
+
+  const showCLP = ()=> clpDialogRef.current.handleOpen();
+  const showProtected = () => protectedDialogRef.current.handleOpen();
+
   return (
     <Toolbar
       relation={relation}
       filters={filters}
-      section={relation ? `Relation <${relation.targetClassName}>` : 'Class'}
+      section={relation ? `Relation <${relation.targetClassName}>` : "Class"}
       subsection={subsection}
-      details={details.join(' \u2022 ')}
+      details={details.join(" \u2022 ")}
     >
-      <a className={classes.join(' ')} onClick={onClick}>
-        <Icon name='plus-solid' width={14} height={14} />
+      <a className={classes.join(" ")} onClick={onClick}>
+        <Icon name="plus-solid" width={14} height={14} />
         <span>Add Row</span>
       </a>
       <div className={styles.toolbarSeparator} />
       <ColumnsConfiguration
         handleColumnsOrder={handleColumnsOrder}
         handleColumnDragDrop={handleColumnDragDrop}
-        order={order} />
+        order={order}
+      />
       <div className={styles.toolbarSeparator} />
       <a className={styles.toolbarButton} onClick={onRefresh}>
-        <Icon name='refresh-solid' width={14} height={14} />
+        <Icon name="refresh-solid" width={14} height={14} />
         <span>Refresh</span>
       </a>
       <div className={styles.toolbarSeparator} />
@@ -190,16 +203,52 @@ let BrowserToolbar = ({
         schema={schemaSimplifiedData}
         filters={filters}
         onChange={onFilterChange}
-        className={classNameForEditors} />
+        className={classNameForEditors}
+      />
       <div className={styles.toolbarSeparator} />
-      {enableSecurityDialog ? <SecurityDialog
-        setCurrent={setCurrent}
+      <SecurityDialog
+        ref={clpDialogRef}
         disabled={!!relation || !!isUnique}
         perms={perms}
         className={classNameForEditors}
         onChangeCLP={onChangeCLP}
-        userPointers={userPointers} /> : <noscript />}
-      {enableSecurityDialog ? <div className={styles.toolbarSeparator} /> : <noscript/>}
+        userPointers={userPointers}
+        title="ClassLevelPermissions"
+        icon="locked-solid"
+      />
+      <SecureFieldsDialog
+        ref={protectedDialogRef}
+        columns={columns}
+        disabled={!!relation || !!isUnique}
+        perms={perms}
+        className={classNameForEditors}
+        onChangeCLP={onChangeCLP}
+        userPointers={userPointers}
+        title="ProtectedFields"
+        icon="locked-solid"
+      />
+      {enableSecurityDialog ? (
+        <BrowserMenu
+          setCurrent={setCurrent}
+          title="Security"
+          icon="locked-solid"
+          disabled={!!relation || !!isUnique}
+        >
+          <div className={classes.join(" ")} onClick={showCLP}>
+            <span>{"ClassLevelPermissions"}</span>
+          </div>
+          <div className={classes.join(" ")} onClick={showProtected}>
+            <span>{"ProtectedFields"}</span>
+          </div>
+        </BrowserMenu>
+      ) : (
+        <noscript />
+      )}
+      {enableSecurityDialog ? (
+        <div className={styles.toolbarSeparator} />
+      ) : (
+        <noscript />
+      )}
       {menu}
     </Toolbar>
   );
