@@ -78,6 +78,14 @@ export default class Popover extends React.Component {
       ? document.getElementById(contentId)
       : this._popoverLayer;
     const isChromeDropdown = e.target.parentNode.classList.contains("chromeDropdown");
+    
+    if (
+      !hasAncestor(e.target, this._popoverLayer) &&
+      this.props.onExternalClick)
+      {
+        // my variant
+      }
+      
     if (
       !hasAncestor(e.target, popoverWrapper) &&
       this.props.onExternalClick &&
