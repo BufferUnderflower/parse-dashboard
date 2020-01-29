@@ -84,3 +84,44 @@
 .placeholder {
   color: $secondaryTextColor;
 }
+
+.dropdown.dense {
+  background: none;;
+}
+.dense{
+
+  .checked, .unchecked {
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border-radius: 100%;
+    top: 4px;
+    right: 4px;
+  }
+  .checked{
+    svg {
+      position: absolute;
+      top: 0px;
+      left: 0px;
+      font-size: small;
+    }
+  } 
+  .current {
+    text-align: center;
+    min-height: 50px;
+    height: 100%;
+    padding: 0px;
+    line-height: 48px;
+  }
+
+  .option {
+    height: 30px;
+    line-height: 32px;
+    padding: 0 50px 0 14px;
+  }
+
+} 
+// .mini.current:hover {
+//   overflow:scroll;
+//   text-overflow: clip;
+// }
