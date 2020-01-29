@@ -216,20 +216,22 @@ let BrowserToolbar = ({
         onChange={onFilterChange}
         className={classNameForEditors}
         blacklistedFilters={onAddRow ? [] : ['unique']} />
-      <div className={styles.toolbarSeparator} />
-      <SecurityDialog
-        ref={clpDialogRef}
-        disabled={!!relation || !!isUnique}
-        perms={perms}
-        className={classNameForEditors}
-        onChangeCLP={onChangeCLP}
-        userPointers={userPointers}
-        title="ClassLevelPermissions"
-        icon="locked-solid"
-      />
-      <SecureFieldsDialog
+      {onAddRow && <div className={styles.toolbarSeparator} />}
+      {perms && enableSecurityDialog ? <SecurityDialog
+          ref={clpDialogRef}
+          disabled={!!relation || !!isUnique}
+          perms={perms}
+          className={classNameForEditors}
+          onChangeCLP={onChangeCLP}
+          userPointers={userPointers}
+          title="ClassLevelPermissions"
+          icon="locked-solid"
+        />: (
+          <noscript />
+        )}
+        <SecureFieldsDialog
         ref={protectedDialogRef}
-        columns={columns}
+        columns={columns}        
         disabled={!!relation || !!isUnique}
         perms={perms}
         className={classNameForEditors}
