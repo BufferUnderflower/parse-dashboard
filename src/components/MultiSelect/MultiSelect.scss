@@ -81,13 +81,15 @@
   }
 }
 
-.placeholder {
+.current.placeholder {
   color: $secondaryTextColor;
+  text-align: center;
 }
 
 .dropdown.dense {
   background: none;;
 }
+
 .dense{
 
   .checked, .unchecked {
@@ -101,17 +103,19 @@
   .checked{
     svg {
       position: absolute;
-      top: 0px;
-      left: 0px;
+      top: 2px;
+      left: 2px;
       font-size: small;
     }
-  } 
-  .current {
-    text-align: center;
+  }.current{
     min-height: 50px;
     height: 100%;
     padding: 0px;
     line-height: 48px;
+  }
+
+  .current:not(.placeholder) {
+    text-align: start;
   }
 
   .option {
@@ -120,8 +124,4 @@
     padding: 0 50px 0 14px;
   }
 
-} 
-// .mini.current:hover {
-//   overflow:scroll;
-//   text-overflow: clip;
-// }
+}
