@@ -14,22 +14,35 @@ import ProtectedFieldsDialog from "components/ProtectedFieldsDialog/ProtectedFie
 import ParseApp from "lib/ParseApp";
 import PropTypes from "prop-types";
 
+const pointerPrefix = "userField:";
+
 function validateEntry(pointers, text, parseServerSupportsPointerPermissions) {
   if (parseServerSupportsPointerPermissions) {
-    if (pointers.indexOf(text) > -1) {
-      return Promise.resolve({ pointer: text });
+    let fieldName = text.startsWith(pointerPrefix)
+      ? text.substring(pointerPrefix.length)
+      : text;
+    if (pointers.includes(fieldName)) {
+      return Promise.resolve({
+        entry: pointerPrefix + fieldName,
+        type: "pointer"
+      });
     }
   }
 
   let userQuery;
   let roleQuery;
 
+  if (text === "*") {
+    return Promise.resolve({ entry: "*", type: "public" });
+  }
+
+  if (text.toLowerCase() === "authenticated") {
+    return Promise.resolve({ entry: "authenticated", type: "auth" });
+  }
   // allow explicitly define whether it is a role or user
   // (e.g there might be both role 'admin' and user 'admin')
   // in such case you can type role:admin to query only roles
-  if (text === "*" || text.toLowerCase() === "public") {
-    return Promise.resolve({ public: "*" });
-  }
+
   if (text.startsWith("user:")) {
     // no need to query roles
     roleQuery = {
@@ -69,9 +82,9 @@ function validateEntry(pointers, text, parseServerSupportsPointerPermissions) {
     roleQuery.find({ useMasterKey: true })
   ]).then(([user, role]) => {
     if (user.length > 0) {
-      return { user: user[0] };
+      return { entry: user[0], type: "user" };
     } else if (role.length > 0) {
-      return { role: role[0] };
+      return { entry: role[0], type: "role" };
     } else {
       return Promise.reject();
     }
@@ -82,6 +95,9 @@ export default class SecureFieldsDialog extends React.Component {
   constructor(props) {
     super(props);
     this.state = { open: false };
+
+    this.handleClose = this.handleClose.bind(this);
+    this.handleOpen = this.handleOpen.bind(this);
   }
 
   componentDidUpdate(prevProps) {
@@ -92,8 +108,12 @@ export default class SecureFieldsDialog extends React.Component {
 
   handleOpen() {
     if (!this.props.disabled) {
-      this.setState({ open: true });
+      this.setState({ open: true }, () => this.props.onEditPermissions(true));
     }
+  }
+
+  handleClose() {
+    this.setState({ open: false },() => this.props.onEditPermissions(false));
   }
 
   render() {
@@ -105,6 +125,7 @@ export default class SecureFieldsDialog extends React.Component {
         <ProtectedFieldsDialog
           title="Edit Protected Fields"
           columns={this.props.columns}
+          userPointers={this.props.userPointers}
           protectedFields={this.props.perms.protectedFields}
           enablePointerPermissions={parseServerSupportsPointerPermissions}
           advanced={true}
@@ -124,14 +145,14 @@ export default class SecureFieldsDialog extends React.Component {
               parseServerSupportsPointerPermissions
             )
           }
-          onCancel={() => {
-            this.setState({ open: false });
-          }}
-          onConfirm={perms =>
+          onCancel={this.handleClose}
+          onConfirm={protectedFields => {
+            let newPerms = this.props.perms;
+            newPerms.protectedFields = protectedFields;
             this.props
-              .onChangeCLP(perms)
-              .then(() => this.setState({ open: false }))
-          }
+              .onChangeCLP(newPerms)
+              .then(this.handleClose);
+          }}
         />
       );
     }

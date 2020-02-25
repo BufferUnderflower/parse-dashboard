@@ -26,6 +26,8 @@ let Chip = ({ value, onClose }) => (
     }>
     <Icon name='chip-close'
         viewBox="0 0 24 24"
+        height={12}
+        width={12}
        />
 
     </div>

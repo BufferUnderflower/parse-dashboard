@@ -5,21 +5,18 @@
  * This source code is licensed under the license found in the LICENSE file in
  * the root directory of this source tree.
  */
-import BrowserFilter  from 'components/BrowserFilter/BrowserFilter.react';
-import BrowserMenu    from 'components/BrowserMenu/BrowserMenu.react';
-import ColumnsConfiguration
-                      from 'components/ColumnsConfiguration/ColumnsConfiguration.react';
-import Icon           from 'components/Icon/Icon.react';
-import MenuItem       from 'components/BrowserMenu/MenuItem.react';
-import prettyNumber   from 'lib/prettyNumber';
-import React,
-       { useRef }     from 'react';
-import Separator      from 'components/BrowserMenu/Separator.react';
-import styles         from 'dashboard/Data/Browser/Browser.scss';
-import Toolbar        from 'components/Toolbar/Toolbar.react';
-import SecurityDialog from 'dashboard/Data/Browser/SecurityDialog.react';
-import SecureFieldsDialog 
-                      from 'dashboard/Data/Browser/SecureFieldsDialog.react';
+import BrowserFilter        from 'components/BrowserFilter/BrowserFilter.react';
+import BrowserMenu          from 'components/BrowserMenu/BrowserMenu.react';
+import Icon                 from 'components/Icon/Icon.react';
+import MenuItem             from 'components/BrowserMenu/MenuItem.react';
+import prettyNumber         from 'lib/prettyNumber';
+import React, { useRef }    from 'react';
+import Separator            from 'components/BrowserMenu/Separator.react';
+import styles               from 'dashboard/Data/Browser/Browser.scss';
+import Toolbar              from 'components/Toolbar/Toolbar.react';
+import SecurityDialog       from 'dashboard/Data/Browser/SecurityDialog.react';
+import ColumnsConfiguration  from 'components/ColumnsConfiguration/ColumnsConfiguration.react'
+import SecureFieldsDialog   from 'dashboard/Data/Browser/SecureFieldsDialog.react';
 
 let BrowserToolbar = ({
   className,
@@ -46,6 +43,7 @@ let BrowserToolbar = ({
   onDropClass,
   onChangeCLP,
   onRefresh,
+  onEditPermissions,
   hidePerms,
   isUnique,
   uniqueField,
@@ -171,7 +169,7 @@ let BrowserToolbar = ({
       if (col === 'objectId' || isUnique && col !== uniqueField) {
         return;
       }
-      if (targetClass === '_User') {
+      if ((type ==='Pointer' && targetClass === '_User') || type === 'Array' ) {
         userPointers.push(col);
       }
     });
@@ -215,23 +213,28 @@ let BrowserToolbar = ({
         filters={filters}
         onChange={onFilterChange}
         className={classNameForEditors}
-        blacklistedFilters={onAddRow ? [] : ['unique']} />
+        blacklistedFilters={onAddRow ? [] : ["unique"]}
+      />
       {onAddRow && <div className={styles.toolbarSeparator} />}
-      {perms && enableSecurityDialog ? <SecurityDialog
+      {perms && enableSecurityDialog ? (
+        <SecurityDialog
           ref={clpDialogRef}
           disabled={!!relation || !!isUnique}
           perms={perms}
+          columns={columns}
           className={classNameForEditors}
           onChangeCLP={onChangeCLP}
           userPointers={userPointers}
           title="ClassLevelPermissions"
           icon="locked-solid"
-        />: (
-          <noscript />
-        )}
-        <SecureFieldsDialog
+          onEditPermissions={onEditPermissions}
+        />
+      ) : (
+        <noscript />
+      )}
+      <SecureFieldsDialog
         ref={protectedDialogRef}
-        columns={columns}        
+        columns={columns}
         disabled={!!relation || !!isUnique}
         perms={perms}
         className={classNameForEditors}
@@ -239,6 +242,7 @@ let BrowserToolbar = ({
         userPointers={userPointers}
         title="ProtectedFields"
         icon="locked-solid"
+        onEditPermissions={onEditPermissions}
       />
       {enableSecurityDialog ? (
         <BrowserMenu
