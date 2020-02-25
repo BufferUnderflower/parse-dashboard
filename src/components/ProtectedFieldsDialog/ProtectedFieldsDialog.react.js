@@ -5,25 +5,25 @@
  * This source code is licensed under the license found in the LICENSE file in
  * the root directory of this source tree.
  */
-import hasAncestor        from "lib/hasAncestor";
-import Button             from "components/Button/Button.react";
-import Autocomplete       from "components/Autocomplete/Autocomplete.react";
-import Icon               from "components/Icon/Icon.react";
-import { Map }            from "immutable";
-import Pill               from "components/Pill/Pill.react";
-import Popover            from "components/Popover/Popover.react";
-import Position           from "lib/Position";
-import React              from "react";
-import styles             from "components/ProtectedFieldsDialog/ProtectedFieldsDialog.scss";
-import MultiSelect        from "components/MultiSelect/MultiSelect.react";
-import MultiSelectOption  from "components/MultiSelect/MultiSelectOption.react";
-import TrackVisibility    from "components/TrackVisibility/TrackVisibility.react";
+import hasAncestor        from 'lib/hasAncestor';
+import Button             from 'components/Button/Button.react';
+import Autocomplete       from 'components/Autocomplete/Autocomplete.react';
+import Icon               from 'components/Icon/Icon.react';
+import { Map }            from 'immutable';
+import Pill               from 'components/Pill/Pill.react';
+import Popover            from 'components/Popover/Popover.react';
+import Position           from 'lib/Position';
+import React              from 'react';
+import styles             from 'components/ProtectedFieldsDialog/ProtectedFieldsDialog.scss';
+import MultiSelect        from 'components/MultiSelect/MultiSelect.react';
+import MultiSelectOption  from 'components/MultiSelect/MultiSelectOption.react';
+import TrackVisibility    from 'components/TrackVisibility/TrackVisibility.react';
 import { 
   unselectable,
-  verticalCenter }        from "stylesheets/base.scss";
+  verticalCenter }        from 'stylesheets/base.scss';
 
 let origin = new Position(0, 0);
-const intersectionMargin = "10px 0px 0px 20px";
+const intersectionMargin = '10px 0px 0px 20px';
 
 export default class ProtectedFieldsDialog extends React.Component {
   constructor({ protectedFields, columns }) {
@@ -53,7 +53,7 @@ export default class ProtectedFieldsDialog extends React.Component {
       columns: columns,
       protectedFields: new Map(protectedFields || {}), // protected fields map
       keys,
-      newEntry: "",
+      newEntry: '',
       entryError: null,
       newKeys: []
     };
@@ -71,23 +71,23 @@ export default class ProtectedFieldsDialog extends React.Component {
       let key;
       let value = {};
 
-      if (type === "user") {
+      if (type === 'user') {
         key = entry.id;
         value[type] = {
-          name: entry.get("username"),
+          name: entry.get('username'),
           id: entry.id
         };
       }
 
-      if (type === "role") {
-        key = "role:" + entry.getName();
+      if (type === 'role') {
+        key = 'role:' + entry.getName();
         value[type] = {
           name: entry.getName(),
           id: entry.id
         };
       }
 
-      if (type === "public" || type === "auth" || type === "pointer") {
+      if (type === 'public' || type === 'auth' || type === 'pointer') {
         key = entry;
         value[type] = true;
       }
@@ -99,7 +99,7 @@ export default class ProtectedFieldsDialog extends React.Component {
   }
 
   checkEntry(input) {
-    if (input === "") {
+    if (input === '') {
       return;
     }
     if (this.props.validateEntry) {
@@ -114,10 +114,10 @@ export default class ProtectedFieldsDialog extends React.Component {
 
           if (next.user || next.role) {
             // entry for saving
-            key = next.user ? next.user.id : "role:" + next.role.getName();
+            key = next.user ? next.user.id : 'role:' + next.role.getName();
 
             // info for displaying
-            name = next.user ? next.user.get("username") : next.role.getName();
+            name = next.user ? next.user.get('username') : next.role.getName();
             id = next.user ? next.user.id : next.role.id;
             newEntry[type] = { name, id };
           } else {
@@ -131,7 +131,7 @@ export default class ProtectedFieldsDialog extends React.Component {
               this.state.newKeys.includes(key)
             ) {
               return this.setState({
-                entryError: "You already have a row for this object"
+                entryError: 'You already have a row for this object'
               });
             }
 
@@ -154,11 +154,11 @@ export default class ProtectedFieldsDialog extends React.Component {
           if (this.props.enablePointerPermissions) {
             this.setState({
               entryError:
-                "Role, User or field not found. Enter a valid id, name or column."
+                'Role, User or field not found. Enter a valid id, name or column.'
             });
           } else {
             this.setState({
-              entryError: "Role or User not found. Enter a valid name or id"
+              entryError: 'Role or User not found. Enter a valid name or id'
             });
           }
         }
@@ -209,15 +209,15 @@ export default class ProtectedFieldsDialog extends React.Component {
     let entries = Object.entries(schema);
     for (let [field, { type, targetClass }] of entries) {
       if (
-        field === "objectId" ||
-        field === "createdAt" ||
-        field === "updatedAt" ||
-        field === "ACL"
+        field === 'objectId' ||
+        field === 'createdAt' ||
+        field === 'updatedAt' ||
+        field === 'ACL'
       ) {
         continue;
       }
 
-      let pillText = type + (targetClass ? `<${targetClass}>` : "");
+      let pillText = type + (targetClass ? `<${targetClass}>` : '');
 
       options.push(
         <MultiSelectOption key={`col-${field}`} value={field} dense={true}>
@@ -264,7 +264,7 @@ export default class ProtectedFieldsDialog extends React.Component {
         <span>
           <p>
             <span>
-              <span className={styles.prefix}>{"role:"}</span>
+              <span className={styles.prefix}>{'role:'}</span>
               {type.role.name}
             </span>
           </p>
@@ -281,11 +281,11 @@ export default class ProtectedFieldsDialog extends React.Component {
           <p>
             <span>
               <span className={styles.selectable}>{type.user.id}</span>
-              {pill("User")}
+              {pill('User')}
             </span>
           </p>
           <p className={styles.hint}>
-            username:{" "}
+            username:{' '}
             <span className={styles.selectable}>{type.user.name}</span>
           </p>
         </span>
@@ -296,7 +296,7 @@ export default class ProtectedFieldsDialog extends React.Component {
       label = (
         <span>
           <p>
-            {" "}
+            {' '}
             <span className={styles.prefix}>*</span> (Public Access)
           </p>
           <p className={styles.hint}>Applies to all queries</p>
@@ -315,7 +315,7 @@ export default class ProtectedFieldsDialog extends React.Component {
 
     if (type.pointer) {
       let { type, targetClass } = columns[key.substring(10)];
-      let pillText = type + (targetClass ? `<${targetClass}>` : "");
+      let pillText = type + (targetClass ? `<${targetClass}>` : '');
 
       label = (
         <span>
@@ -382,7 +382,7 @@ export default class ProtectedFieldsDialog extends React.Component {
       .map(ptr => `userField:${ptr}`)
       .filter(ptr => !allKeys.includes(ptr) && ptr.includes(input));
 
-    let possiblePrefix = ["role:"]
+    let possiblePrefix = ['role:']
       .filter(o => o.startsWith(input) && o.length > input.length) // filter matching prefixes
       .concat(...availablePointerFields); //
 
@@ -390,7 +390,7 @@ export default class ProtectedFieldsDialog extends React.Component {
     let availableFields = [];
 
     // do not suggest unique rows that are already added;
-    let uniqueOptions = ["*", "authenticated"].filter(
+    let uniqueOptions = ['*', 'authenticated'].filter(
       key =>
         !allKeys.includes(key) && (input.length == 0 || key.startsWith(input))
     );
@@ -416,12 +416,12 @@ export default class ProtectedFieldsDialog extends React.Component {
 
   buildLabel(input) {
     let label;
-    if (input.startsWith("userField:")) {
-      label = "Name of field with pointer(s) to User";
-    } else if (input.startsWith("user:")) {
-      label = "Find User by id or name";
-    } else if (input.startsWith("role:")) {
-      label = "Find Role by id or name";
+    if (input.startsWith('userField:')) {
+      label = 'Name of field with pointer(s) to User';
+    } else if (input.startsWith('user:')) {
+      label = 'Find User by id or name';
+    } else if (input.startsWith('role:')) {
+      label = 'Find Role by id or name';
     }
 
     return label;
@@ -430,7 +430,7 @@ export default class ProtectedFieldsDialog extends React.Component {
   render() {
     let classes = [styles.dialog, unselectable];
 
-    let placeholderText = "Role/User id/name * or authenticated\u2026";
+    let placeholderText = 'Role/User id/name * or authenticated\u2026';
 
     return (
       <Popover
@@ -441,11 +441,11 @@ export default class ProtectedFieldsDialog extends React.Component {
         color="rgba(17,13,17,0.8)"
         onExternalClick={this.close.bind(this)}
       >
-        <div className={classes.join(" ")}>
+        <div className={classes.join(' ')}>
           <div className={styles.header}>{this.props.title}</div>
           <div className={styles.tableWrap}>
             <div className={styles.table} ref={this.refTable}>
-              <div className={[styles.overlay, styles.second].join(" ")} />
+              <div className={[styles.overlay, styles.second].join(' ')} />
               {this.state.keys.map(key =>
                 this.renderRow(key, this.state.columns, this.state.entryTypes)
               )}
@@ -459,13 +459,13 @@ export default class ProtectedFieldsDialog extends React.Component {
                   <Autocomplete
                     ref={this.refEntry}
                     inputStyle={{
-                      width: "400px",
-                      padding: "0 6px",
-                      margin: "10px 20px"
+                      width: '400px',
+                      padding: '0 6px',
+                      margin: '10px 20px'
                     }}
                     suggestionsStyle={{
-                      margin: "-6px 0px 0px 20px",
-                      width: "400px"
+                      margin: '-6px 0px 0px 20px',
+                      width: '400px'
                     }}
                     value={this.state.newEntry}
                     visible={this.state.visible}
@@ -479,7 +479,7 @@ export default class ProtectedFieldsDialog extends React.Component {
                   />
                 </TrackVisibility>
 
-                <div className={[styles.second, styles.error].join(" ")}>
+                <div className={[styles.second, styles.error].join(' ')}>
                   {this.state.entryError}
                 </div>
               </div>
@@ -494,7 +494,7 @@ export default class ProtectedFieldsDialog extends React.Component {
                 onClick={() => this.props.onConfirm(this.outputPerms())}
               />
             </div>
-            <div className={[styles.details, verticalCenter].join(" ")}>
+            <div className={[styles.details, verticalCenter].join(' ')}>
               {this.props.details}
             </div>
           </div>

@@ -5,11 +5,11 @@
  * This source code is licensed under the license found in the LICENSE file in
  * the root directory of this source tree.
  */
-import Position             from "lib/Position";
-import React, { Component } from "react";
-import ReactDOM             from "react-dom";
-import styles               from "components/Autocomplete/Autocomplete.scss";
-import SuggestionsList      from "components/SuggestionsList/SuggestionsList.react";
+import Position             from 'lib/Position';
+import React, { Component } from 'react';
+import ReactDOM             from 'react-dom';
+import styles               from 'components/Autocomplete/Autocomplete.scss';
+import SuggestionsList      from 'components/SuggestionsList/SuggestionsList.react';
 
 export default class Autocomplete extends Component {
   constructor(props) {
@@ -45,7 +45,7 @@ export default class Autocomplete extends Component {
       activeSuggestion: 0,
       filteredSuggestions: [],
       showSuggestions: false,
-      userInput: "",
+      userInput: '',
       label: props.label,
       position: null
     };
@@ -54,8 +54,8 @@ export default class Autocomplete extends Component {
   componentDidMount() {
     this.node = ReactDOM.findDOMNode(this);
     this.recalculatePosition();
-    window.addEventListener("resize", this.handleResize);
-    this.node.addEventListener("scroll", this.handleScroll);
+    window.addEventListener('resize', this.handleResize);
+    this.node.addEventListener('scroll', this.handleScroll);
     this._ignoreBlur = false;
   }
 
@@ -64,8 +64,8 @@ export default class Autocomplete extends Component {
   }
 
   componentWillUnmount() {
-    this.node.removeEventListener("scroll", this.handleScroll);
-    window.removeEventListener("resize", this.handleResize);
+    this.node.removeEventListener('scroll', this.handleScroll);
+    window.removeEventListener('resize', this.handleResize);
   }
 
   getPosition() {
@@ -210,7 +210,7 @@ export default class Autocomplete extends Component {
         active: false,
         activeSuggestion: 0,
         showSuggestions: false,
-        userInput: ""
+        userInput: ''
       },
       () => {
         this.inputRef.current.blur();
@@ -292,9 +292,9 @@ export default class Autocomplete extends Component {
         visible &&
         filteredSuggestions.length &&
         styles.dropdown
-    ].join(" ");
+    ].join(' ');
 
-    const inputClasses = [error && styles.error].join(" ");
+    const inputClasses = [error && styles.error].join(' ');
 
     let suggestionsListComponent;
     if (showSuggestions && visible && filteredSuggestions.length) {

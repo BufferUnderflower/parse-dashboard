@@ -5,11 +5,10 @@
  * This source code is licensed under the license found in the LICENSE file in
  * the root directory of this source tree.
  */
-import Popover from "components/Popover/Popover.react";
-import React from "react";
-import styles from "components/SuggestionsList/SuggestionsList.scss";
-// import ReactDOM from "react-dom";  
-import Position from "lib/Position";
+import Popover  from 'components/Popover/Popover.react';
+import React    from 'react';
+import styles   from 'components/SuggestionsList/SuggestionsList.scss';
+import Position from 'lib/Position';
 
 export default class Suggestion extends React.Component {
   constructor() {
