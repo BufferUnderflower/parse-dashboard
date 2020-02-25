@@ -5,13 +5,19 @@
  * This source code is licensed under the license found in the LICENSE file in
  * the root directory of this source tree.
  */
-@import 'stylesheets/globals.scss';
+@import "stylesheets/globals.scss";
 
-$labelWidth: 330px;
-$fieldsWidth: 420px;
+$labelWidth: 440px;
+$fieldsWidth: 480px;
+
 $deleteColWidth: 44px;
 
-$permissionsDialogWidth: calc(#{$labelWidth} + #{$fieldsWidth} + #{$deleteColWidth});
+$entryMargin: 20px;
+$entryWidth: calc(#{$labelWidth} - #{$entryMargin}* 2);
+
+$permissionsDialogWidth: calc(
+  #{$labelWidth} + #{$fieldsWidth} + #{$deleteColWidth}
+);
 
 .dialog {
   @include modalAnimation();
@@ -35,11 +41,10 @@ $permissionsDialogWidth: calc(#{$labelWidth} + #{$fieldsWidth} + #{$deleteColWid
   text-align: center;
 }
 
-
 .level {
   height: 50px;
   width: $permissionsDialogWidth; //   width: 658px;
-  background: #0E69A1;
+  background: #0e69a1;
   position: relative;
   color: white;
   transition: width 0.3s 0.15s ease-out;
@@ -61,7 +66,7 @@ $permissionsDialogWidth: calc(#{$labelWidth} + #{$fieldsWidth} + #{$deleteColWid
 }
 
 .tableWrap {
-  height: 250px;
+  height: 450px;
   overflow-y: auto;
   overflow-x: hidden;
 }
@@ -70,17 +75,16 @@ $permissionsDialogWidth: calc(#{$labelWidth} + #{$fieldsWidth} + #{$deleteColWid
   width: #{$fieldsWidth};
 }
 
-
 .table {
   position: relative;
-  min-height: 250px;
+  min-height: 450px;
 
   .overlay {
     position: absolute;
     top: 0;
     bottom: 0;
     pointer-events: none;
-    background: rgba(0,0,40,0.03);
+    background: rgba(0, 0, 40, 0.03);
 
     &.second {
       left: $labelWidth;
@@ -133,7 +137,7 @@ $permissionsDialogWidth: calc(#{$labelWidth} + #{$fieldsWidth} + #{$deleteColWid
 
 .row.public {
   background: rgba(22, 156, 238, 0.18);
-  border-bottom: 1px solid #0E69A1;
+  border-bottom: 1px solid #0e69a1;
   color: $blue;
 }
 
@@ -147,19 +151,21 @@ $permissionsDialogWidth: calc(#{$labelWidth} + #{$fieldsWidth} + #{$deleteColWid
 
 .entry {
   height: 30px;
-  width: 290px;
+  width: $entryWidth;
   border: 1px solid $mainTextColor;
   border-radius: 5px;
   font-size: 14px;
   outline: none;
   padding: 0 6px;
-  margin: 10px 0 0 20px;
+  margin: 10px $entryMargin;
   vertical-align: top;
 }
 
 .error {
   border-color: $red;
   color: $red;
+  overflow: hidden;
+  white-space: normal;
 }
 
 .delete {
@@ -173,7 +179,7 @@ $permissionsDialogWidth: calc(#{$labelWidth} + #{$fieldsWidth} + #{$deleteColWid
   svg {
     vertical-align: top;
     cursor: pointer;
-    fill: #C1C7CD;
+    fill: #c1c7cd;
 
     &:hover {
       fill: $red;
@@ -181,25 +187,50 @@ $permissionsDialogWidth: calc(#{$labelWidth} + #{$fieldsWidth} + #{$deleteColWid
   }
 }
 
-.pillHolder{
-  max-width: 100px;
-  position: relative;
-  display: inline-block;
-  top: 5px;
+.pillHolder {
+  max-width: 200px;
+  overflow: hidden;
+  display: inline-flex;
+  align-self: center;
+  padding-left: 4px;
 }
 
-.pillType{
+.pillType {
   width: auto;
   display: inline-flex;
   height: 20;
+  padding: 2px 8px 0 8px;
 }
 
+.multiselect {
+  .pillType {
+    visibility: collapse;
+    display: none;
+    top: 5px;
+  }
+}
 
-.multiselect{
-  .pillType{
-  visibility: collapse;
-  display: none;
-  top: 5px;
+.hint {
+  color: $secondaryTextColor;
+  font-size: 0.8em;
 }
+.selectable {
+  user-select: text;
 }
+.prefix {
+  color: #0e69a1;
+}
+
+.suggestions {
+  margin-left: -19px;
+  width: $entryWidth;
+  margin-top: -24px;
+}
+
+.entry input {
+  width: $entryWidth !important;
+  padding: 0 6px;
+  margin: 10px 20px;
+}
+
 @include modalKeyframes();

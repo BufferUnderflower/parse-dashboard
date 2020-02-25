@@ -5,112 +5,164 @@
  * This source code is licensed under the license found in the LICENSE file in
  * the root directory of this source tree.
  */
-import hasAncestor  from 'lib/hasAncestor';
-import Button       from 'components/Button/Button.react';
-import Icon         from 'components/Icon/Icon.react';
-import { Map }      from 'immutable';
-import Pill         from 'components/Pill/Pill.react';
-import Popover      from 'components/Popover/Popover.react';
-import Position     from 'lib/Position';
-import React        from 'react';
-import styles       from 'components/ProtectedFieldsDialog/ProtectedFieldsDialog.scss';
-import {
+import hasAncestor        from "lib/hasAncestor";
+import Button             from "components/Button/Button.react";
+import Autocomplete       from "components/Autocomplete/Autocomplete.react";
+import Icon               from "components/Icon/Icon.react";
+import { Map }            from "immutable";
+import Pill               from "components/Pill/Pill.react";
+import Popover            from "components/Popover/Popover.react";
+import Position           from "lib/Position";
+import React              from "react";
+import styles             from "components/ProtectedFieldsDialog/ProtectedFieldsDialog.scss";
+import MultiSelect        from "components/MultiSelect/MultiSelect.react";
+import MultiSelectOption  from "components/MultiSelect/MultiSelectOption.react";
+import TrackVisibility    from "components/TrackVisibility/TrackVisibility.react";
+import { 
   unselectable,
-  verticalCenter
-}                   from 'stylesheets/base.scss';
-import MultiSelect  from 'components/MultiSelect/MultiSelect.react'
-import MultiSelectOption 
-                    from 'components/MultiSelect/MultiSelectOption.react'
+  verticalCenter }        from "stylesheets/base.scss";
 
 let origin = new Position(0, 0);
+const intersectionMargin = "10px 0px 0px 20px";
 
-export default class PermissionsDialog extends React.Component {
-  constructor({
-    protectedFields,
-    columns
-  }) {
+export default class ProtectedFieldsDialog extends React.Component {
+  constructor({ protectedFields, columns }) {
     super();
 
-    let keys =  Object.keys(protectedFields || {});
-  
+    let keys = Object.keys(protectedFields || {});
+
+    this.refEntry = React.createRef(null);
+    this.refTable = React.createRef(null);
+
+    // Intersection observer is used to avoid ugly effe t
+    // when suggestion are shown whil input field is scrolled out oof viewpoort
+    const callback = ([entry]) => {
+      const ratio = entry.intersectionRatio;
+      this.refEntry.current.toggle(ratio > 0.92);
+    };
+
+    this.observer = new IntersectionObserver(callback, {
+      root: this.refTable.current,
+      rootMargin: intersectionMargin,
+      threshold: [0.92]
+    });
+
     this.state = {
+      entryTypes: undefined,
       transitioning: false,
       columns: columns,
-      protectedFields: new Map(protectedFields|| {}), // protected fields map
-      keys, // fields row order
-      newEntry: '',
+      protectedFields: new Map(protectedFields || {}), // protected fields map
+      keys,
+      newEntry: "",
       entryError: null,
-      newKeys: [], // Order for new entries
+      newKeys: []
     };
   }
 
+  async componentDidMount() {
+    // validate existing entries, also preserve their types (to render correct pills).
+    const rows = await Promise.all(
+      this.state.keys.map(key => this.props.validateEntry(key))
+    );
 
-  handleKeyDown(e) {
-    if (e.keyCode === 13) {
-      this.checkEntry();
+    let entryTypes = new Map({});
+
+    for (const { entry, type } of rows) {
+      let key;
+      let value = {};
+
+      if (type === "user") {
+        key = entry.id;
+        value[type] = {
+          name: entry.get("username"),
+          id: entry.id
+        };
+      }
+
+      if (type === "role") {
+        key = "role:" + entry.getName();
+        value[type] = {
+          name: entry.getName(),
+          id: entry.id
+        };
+      }
+
+      if (type === "public" || type === "auth" || type === "pointer") {
+        key = entry;
+        value[type] = true;
+      }
+
+      entryTypes = entryTypes.set(key, value);
     }
+
+    this.setState({ entryTypes });
   }
 
-  checkEntry() {
-    if (this.state.newEntry === '') {
+  checkEntry(input) {
+    if (input === "") {
       return;
     }
     if (this.props.validateEntry) {
-      this.props.validateEntry(this.state.newEntry).then((type) => {
-        if (type.user || type.role) {
-          let id = type.user ? type.user.id : 'role:' + type.role.getName();
-          if (this.state.keys.indexOf(id) > -1 || this.state.newKeys.indexOf(id) > -1) {
-            return this.setState({
-              entryError: 'You already have a row for this object'
-            })
+      this.props.validateEntry(input).then(
+        ({ type, entry }) => {
+          let next = { [type]: entry };
+
+          let key;
+          let name;
+          let id;
+          let newEntry = {};
+
+          if (next.user || next.role) {
+            // entry for saving
+            key = next.user ? next.user.id : "role:" + next.role.getName();
+
+            // info for displaying
+            name = next.user ? next.user.get("username") : next.role.getName();
+            id = next.user ? next.user.id : next.role.id;
+            newEntry[type] = { name, id };
+          } else {
+            key = next.public || next.auth || next.pointer;
+            newEntry[type] = true;
           }
 
-          let nextFields = this.state.protectedFields;
-          nextFields.set(id,[]);
-     
-          let nextKeys = this.state.newKeys.concat([id]);
-          return this.setState({
-            protectedFields: nextFields,
-            newKeys: nextKeys,
-            newEntry: '',
-            entryError: null,
-          });
-        }
-        if (type.pointer) {
-          let nextFields = this.state.protectedFields.set(type.pointer, []);
-          let nextKeys = this.state.newKeys.concat('userField:' + type.pointer);
+          if (key) {
+            if (
+              this.state.keys.includes(key) ||
+              this.state.newKeys.includes(key)
+            ) {
+              return this.setState({
+                entryError: "You already have a row for this object"
+              });
+            }
 
-          this.setState({
-            pointerPerms: nextFields,
-            newKeys: nextKeys,
-            newEntry: '',
-            entryError: null,
-          });
-        }
+            let nextKeys = this.state.newKeys.concat([key]);
+            let nextFields = this.state.protectedFields.set(key, []);
+            let nextEntryTypes = this.state.entryTypes.set(key, newEntry);
 
-        if(type.public){
-          let nextFields = this.state.protectedFields.set(type.public, [])
-          let nextKeys = this.state.newKeys.concat('Public: ' + type.public);
-
-          return this.setState({
-            protectedFields: nextFields,
-            newKeys: nextKeys,
-            newEntry: '',
-            entryError: null,
-          });
-
+            return this.setState(
+              {
+                entryTypes: nextEntryTypes,
+                protectedFields: nextFields,
+                newKeys: nextKeys,
+                entryError: null
+              },
+              this.refEntry.current.resetInput()
+            );
+          }
+        },
+        () => {
+          if (this.props.enablePointerPermissions) {
+            this.setState({
+              entryError:
+                "Role, User or field not found. Enter a valid id, name or column."
+            });
+          } else {
+            this.setState({
+              entryError: "Role or User not found. Enter a valid name or id"
+            });
+          }
         }
-      }, () => {
-        if (this.props.advanced && this.props.enablePointerPermissions) {
-          this.setState({
-            entryError: 'Role, User or pointer field not found. Enter a valid Role name, Username, User ID or User pointer field name.'
-          });
-        } else {
-          this.setState({
-            entryError: 'Role or User not found. Enter a valid Role name, Username, or User ID.'
-          });
-        }
-      })
+      );
     }
   }
 
@@ -127,65 +179,67 @@ export default class PermissionsDialog extends React.Component {
       newKeys,
       keys
     });
-}
+  }
 
   outputPerms() {
-    let output = this.state.perms;
-
-    output.protectedFields = this.state.protectedFields.toObject()
+    let output = this.state.protectedFields.toObject();
 
     return output;
   }
 
-
-  onChange(key,newValue){
-    this.setState((state)=>{
+  onChange(key, newValue) {
+    this.setState(state => {
       let protectedFields = state.protectedFields;
-      protectedFields = protectedFields.set(key,newValue);
-      return { protectedFields }
-    })
+      protectedFields = protectedFields.set(key, newValue);
+      return { protectedFields };
+    });
   }
 
-   /** 
+  /**
    * @param {String} key - entity (Public, User, Role, field-pointer)
    * @param {Object} schema - object with fields of collection: { [fieldName]: { type: String, targetClass?: String }}
    * @param {String[]} selected - fields that are set for entity
-   * 
+   *
    * Renders Dropdown allowing to pick multiple fields for an entity (row).
    */
-  renderSelector(key, schema, selected){
-
-    console.log(schema)
+  renderSelector(key, schema, selected) {
     let options = [];
     let values = selected || [];
 
     let entries = Object.entries(schema);
-    for (let [field, {type}] of entries) {
+    for (let [field, { type, targetClass }] of entries) {
+      if (
+        field === "objectId" ||
+        field === "createdAt" ||
+        field === "updatedAt" ||
+        field === "ACL"
+      ) {
+        continue;
+      }
+
+      let pillText = type + (targetClass ? `<${targetClass}>` : "");
+
       options.push(
-        <MultiSelectOption
-          key={`col-${field}`}
-          value={field}
-          dense={true}
-        >
-            {field}
-            <span className={styles.pillType}>
-              <Pill value={type}/>
-            </span>
+        <MultiSelectOption key={`col-${field}`} value={field} dense={true}>
+          {field}
+          <span className={styles.pillType}>
+            <Pill value={pillText} />
+          </span>
         </MultiSelectOption>
       );
     }
 
     return (
-      <div className={styles.second, styles.multiselect}>
+      <div className={(styles.second, styles.multiselect)}>
         <MultiSelect
           fixed={false}
           dense={true}
           chips={true}
-          onChange= {s=>{
-            this.onChange(key,s);
+          onChange={s => {
+            this.onChange(key, s);
           }}
           value={values}
-          placeHolder="Add some fields"
+          placeHolder="All fields allowed. Click to protect."
         >
           {options}
         </MultiSelect>
@@ -193,37 +247,106 @@ export default class PermissionsDialog extends React.Component {
     );
   }
 
-  renderRow(key, forcePointer) {
-    let pointer = !!forcePointer;
+  renderRow(key, columns, types) {
+    const pill = text => (
+      <span className={styles.pillType}>
+        <Pill value={text} />
+      </span>
+    );
+
+    // types is immutable.js Map
+    const type = (types && types.get(key)) || {};
+
     let label = <span>{key}</span>;
-    if (key.startsWith('role:')) {
-      label = <span>{key.substr(5)} (Role)</span>;
-    } else if (key.startsWith('userField:')) {
-      pointer = true;
-      key = key.substr(10);
+
+    if (type.role) {
+      label = (
+        <span>
+          <p>
+            <span>
+              <span className={styles.prefix}>{"role:"}</span>
+              {type.role.name}
+            </span>
+          </p>
+          <p className={styles.hint}>
+            id: <span className={styles.selectable}>{type.role.id}</span>
+          </p>
+        </span>
+      );
     }
-    if (pointer) {
-      label = <span>{key} <span className={styles.pillHolder}><Pill value='<_User>' /></span></span>;
+
+    if (type.user) {
+      label = (
+        <span>
+          <p>
+            <span>
+              <span className={styles.selectable}>{type.user.id}</span>
+              {pill("User")}
+            </span>
+          </p>
+          <p className={styles.hint}>
+            username:{" "}
+            <span className={styles.selectable}>{type.user.name}</span>
+          </p>
+        </span>
+      );
     }
+
+    if (type.public) {
+      label = (
+        <span>
+          <p>
+            {" "}
+            <span className={styles.prefix}>*</span> (Public Access)
+          </p>
+          <p className={styles.hint}>Applies to all queries</p>
+        </span>
+      );
+    }
+
+    if (type.auth) {
+      label = (
+        <span>
+          <p className={styles.prefix}>Authenticated</p>
+          <p className={styles.hint}>Applies to any logged user</p>
+        </span>
+      );
+    }
+
+    if (type.pointer) {
+      let { type, targetClass } = columns[key.substring(10)];
+      let pillText = type + (targetClass ? `<${targetClass}>` : "");
+
+      label = (
+        <span>
+          <p>
+            <span className={styles.prefix}>userField:</span>
+            {key.substring(10)}
+            {pill(pillText)}
+          </p>
+          <p className={styles.hint}>Only users pointed to by this field</p>
+        </span>
+      );
+    }
+
     let content = null;
     if (!this.state.transitioning) {
-      if (pointer) {
-        content = this.renderSelector(
-          key,
-          this.state.columns,
-          this.state.protectedFields.get(key)
-        );
-      } else {
-        content = this.renderSelector(key, this.state.columns, this.state.protectedFields.get(key),
-        );
-      }
+      content = this.renderSelector(
+        key,
+        this.state.columns,
+        this.state.protectedFields.get(key)
+      );
     }
     let trash = null;
     if (!this.state.transitioning) {
       trash = (
         <div className={styles.delete}>
-          <a href='javascript:;' role='button' onClick={this.deleteRow.bind(this, key, pointer)}>
-            <Icon name='trash-solid' width={20} height={20} />
+          <a
+            href="javascript:;"
+            role="button"
+            onClick={this.deleteRow.bind(this, key)}
+          >
+            <Icon name="trash-solid" width={20} height={20} />
           </a>
         </div>
       );
@@ -237,62 +360,141 @@ export default class PermissionsDialog extends React.Component {
     );
   }
 
-
-  close(e){
+  close(e) {
     if (!hasAncestor(e.target, this.node)) {
       //In the case where the user clicks on the node, toggle() will handle closing the dropdown.
-      this.setState({open: false});
-   }
+      this.setState({ open: false });
+    }
+  }
+
+  onUserInput(input) {
+    this.setState({ newEntry: input, entryError: undefined });
+  }
+
+  suggestInput(input) {
+    const userPointers = this.props.userPointers;
+
+    const keys = this.state.keys;
+    const newKeys = this.state.newKeys;
+    const allKeys = [...keys, ...newKeys];
+
+    let availablePointerFields = userPointers
+      .map(ptr => `userField:${ptr}`)
+      .filter(ptr => !allKeys.includes(ptr) && ptr.includes(input));
+
+    let possiblePrefix = ["role:"]
+      .filter(o => o.startsWith(input) && o.length > input.length) // filter matching prefixes
+      .concat(...availablePointerFields); //
+
+    // pointer fields that are not applied yet;
+    let availableFields = [];
+
+    // do not suggest unique rows that are already added;
+    let uniqueOptions = ["*", "authenticated"].filter(
+      key =>
+        !allKeys.includes(key) && (input.length == 0 || key.startsWith(input))
+    );
+
+    availableFields.push(...uniqueOptions);
+    availableFields.push(...possiblePrefix);
+
+    return availableFields;
+  }
+
+  onClick(e) {
+    this.setState(
+      {
+        activeSuggestion: 0,
+        newEntry: e.currentTarget.innerText,
+        showSuggestions: false
+      },
+      () => {
+        this.props.onChange(this.state.newEntry);
+      }
+    );
+  }
+
+  buildLabel(input) {
+    let label;
+    if (input.startsWith("userField:")) {
+      label = "Name of field with pointer(s) to User";
+    } else if (input.startsWith("user:")) {
+      label = "Find User by id or name";
+    } else if (input.startsWith("role:")) {
+      label = "Find Role by id or name";
+    }
+
+    return label;
   }
 
   render() {
     let classes = [styles.dialog, unselectable];
-    
-    classes.push(styles.clp);   
-    classes.push(styles.advanced);
 
-    let placeholderText = placeholderText = 'Role, User, or pointer-field\u2026';
-    
+    let placeholderText = "Role/User id/name * or authenticated\u2026";
+
     return (
-      <Popover fadeIn={true} fixed={true} position={origin} modal={true} color='rgba(17,13,17,0.8)'
-      onExternalClick={this.close.bind(this)}
+      <Popover
+        fadeIn={true}
+        fixed={true}
+        position={origin}
+        modal={true}
+        color="rgba(17,13,17,0.8)"
+        onExternalClick={this.close.bind(this)}
       >
-        <div className={classes.join(' ')}>
-          <div className={styles.header}>
-            {this.props.title}
-          </div>
+        <div className={classes.join(" ")}>
+          <div className={styles.header}>{this.props.title}</div>
           <div className={styles.tableWrap}>
-            <div className={styles.table}>
-
-            <div className={[styles.overlay, styles.second].join(' ')} />
-
-              {this.state.keys.map((key) => 
-                this.renderRow(key, this.state.columns[key].type === 'userField' )
+            <div className={styles.table} ref={this.refTable}>
+              <div className={[styles.overlay, styles.second].join(" ")} />
+              {this.state.keys.map(key =>
+                this.renderRow(key, this.state.columns, this.state.entryTypes)
               )}
-   
-              {this.state.newKeys.map((key) => this.renderRow(key))}
+
+              {this.state.newKeys.map(key =>
+                this.renderRow(key, this.state.columns, this.state.entryTypes)
+              )}
+
               <div className={styles.row}>
-                <input
-                  className={[styles.entry, this.state.entryError ? styles.error : undefined].join(' ')}
-                  value={this.state.newEntry}
-                  onChange={(e) => this.setState({ newEntry: e.target.value })}
-                  onBlur={this.checkEntry.bind(this)}
-                  onKeyDown={this.handleKeyDown.bind(this)}
-                  placeholder={placeholderText} />
+                <TrackVisibility observer={this.observer}>
+                  <Autocomplete
+                    ref={this.refEntry}
+                    inputStyle={{
+                      width: "400px",
+                      padding: "0 6px",
+                      margin: "10px 20px"
+                    }}
+                    suggestionsStyle={{
+                      margin: "-6px 0px 0px 20px",
+                      width: "400px"
+                    }}
+                    value={this.state.newEntry}
+                    visible={this.state.visible}
+                    onChange={e => this.onUserInput(e)}
+                    onSubmit={this.checkEntry.bind(this)}
+                    placeholder={placeholderText}
+                    buildSuggestions={input => this.suggestInput(input)}
+                    buildLabel={input => this.buildLabel(input)}
+                    locked={false}
+                    error={this.state.entryError}
+                  />
+                </TrackVisibility>
+
+                <div className={[styles.second, styles.error].join(" ")}>
+                  {this.state.entryError}
+                </div>
               </div>
             </div>
           </div>
           <div className={styles.footer}>
             <div className={styles.actions}>
-              <Button
-                value='Cancel'
-                onClick={this.props.onCancel} />
+              <Button value="Cancel" onClick={this.props.onCancel} />
               <Button
                 primary={true}
                 value={this.props.confirmText}
-                onClick={() => this.props.onConfirm(this.outputPerms())} />
+                onClick={() => this.props.onConfirm(this.outputPerms())}
+              />
             </div>
-            <div className={[styles.details, verticalCenter].join(' ')}>
+            <div className={[styles.details, verticalCenter].join(" ")}>
               {this.props.details}
             </div>
           </div>

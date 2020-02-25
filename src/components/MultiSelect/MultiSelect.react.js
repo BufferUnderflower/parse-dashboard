@@ -136,6 +136,7 @@ export default class MultiSelect extends React.Component {
               return (
                 <Chip 
                   value={item}
+                  key={'chip-'+index}
                   onClose={(removed) => {
                     if(removed) this.select(removed);
                   }}>
