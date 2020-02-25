@@ -27,32 +27,32 @@ function validateEntry(pointers, text, parseServerSupportsPointerPermissions) {
   let userQuery;
   let roleQuery;
 
-  if (text === "*") {
-    return Promise.resolve({ entry: "*", type: 'public' });
+  if (text === '*') {
+    return Promise.resolve({ entry: '*', type: 'public' });
   }
 
-  if (text.toLowerCase() === "requiresAuthentication") {
-    return Promise.resolve({ entry: "requiresAuthentication", type: 'auth' });
+  if (text.toLowerCase() === 'requiresAuthentication') {
+    return Promise.resolve({ entry: 'requiresAuthentication', type: 'auth' });
   }
 
-  if (text.startsWith("user:")) {
+  if (text.startsWith('user:')) {
     let user = text.substring(5);
 
     userQuery = new Parse.Query.or(
-      new Parse.Query(Parse.User).equalTo("username", user),
-      new Parse.Query(Parse.User).equalTo("objectId", user)
+      new Parse.Query(Parse.User).equalTo('username', user),
+      new Parse.Query(Parse.User).equalTo('objectId', user)
     );
     // no need to query roles
     roleQuery = {
       find: () => Promise.resolve([])
     };
 
-  } else if (text.startsWith("role:")) {
+  } else if (text.startsWith('role:')) {
     let role = text.substring(5);
 
     roleQuery = new Parse.Query.or(
-      new Parse.Query(Parse.Role).equalTo("name", role),
-      new Parse.Query(Parse.Role).equalTo("objectId", role)
+      new Parse.Query(Parse.Role).equalTo('name', role),
+      new Parse.Query(Parse.Role).equalTo('objectId', role)
     );
     // no need to query users
     userQuery = {
@@ -61,13 +61,13 @@ function validateEntry(pointers, text, parseServerSupportsPointerPermissions) {
   } else {
     // query both
     userQuery = Parse.Query.or(
-      new Parse.Query(Parse.User).equalTo("username", text),
-      new Parse.Query(Parse.User).equalTo("objectId", text)
+      new Parse.Query(Parse.User).equalTo('username', text),
+      new Parse.Query(Parse.User).equalTo('objectId', text)
     );
 
     roleQuery = Parse.Query.or(
-      new Parse.Query(Parse.Role).equalTo("name", text),
-      new Parse.Query(Parse.Role).equalTo("objectId", text)
+      new Parse.Query(Parse.Role).equalTo('name', text),
+      new Parse.Query(Parse.Role).equalTo('objectId', text)
     );
   }
 

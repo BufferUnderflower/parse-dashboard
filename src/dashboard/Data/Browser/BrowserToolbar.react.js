@@ -213,7 +213,7 @@ let BrowserToolbar = ({
         filters={filters}
         onChange={onFilterChange}
         className={classNameForEditors}
-        blacklistedFilters={onAddRow ? [] : ["unique"]}
+        blacklistedFilters={onAddRow ? [] : ['unique']}
       />
       {onAddRow && <div className={styles.toolbarSeparator} />}
       {perms && enableSecurityDialog ? (

@@ -6,15 +6,14 @@
  * the root directory of this source tree.
  */
 
-import Parse from "parse";
-import React from "react";
-import styles from "dashboard/Data/Browser/Browser.scss";
-import ProtectedFieldsDialog from "components/ProtectedFieldsDialog/ProtectedFieldsDialog.react";
+import Parse                  from 'parse';
+import React                  from 'react';
+import styles                 from 'dashboard/Data/Browser/Browser.scss';
+import ProtectedFieldsDialog  from 'components/ProtectedFieldsDialog/ProtectedFieldsDialog.react';
+import ParseApp               from 'lib/ParseApp';
+import PropTypes              from 'prop-types';
 
-import ParseApp from "lib/ParseApp";
-import PropTypes from "prop-types";
-
-const pointerPrefix = "userField:";
+const pointerPrefix = 'userField:';
 
 function validateEntry(pointers, text, parseServerSupportsPointerPermissions) {
   if (parseServerSupportsPointerPermissions) {
@@ -24,7 +23,7 @@ function validateEntry(pointers, text, parseServerSupportsPointerPermissions) {
     if (pointers.includes(fieldName)) {
       return Promise.resolve({
         entry: pointerPrefix + fieldName,
-        type: "pointer"
+        type: 'pointer'
       });
     }
   }
@@ -32,18 +31,18 @@ function validateEntry(pointers, text, parseServerSupportsPointerPermissions) {
   let userQuery;
   let roleQuery;
 
-  if (text === "*") {
-    return Promise.resolve({ entry: "*", type: "public" });
+  if (text === '*') {
+    return Promise.resolve({ entry: '*', type: 'public' });
   }
 
-  if (text.toLowerCase() === "authenticated") {
-    return Promise.resolve({ entry: "authenticated", type: "auth" });
+  if (text.toLowerCase() === 'authenticated') {
+    return Promise.resolve({ entry: 'authenticated', type: 'auth' });
   }
   // allow explicitly define whether it is a role or user
   // (e.g there might be both role 'admin' and user 'admin')
   // in such case you can type role:admin to query only roles
 
-  if (text.startsWith("user:")) {
+  if (text.startsWith('user:')) {
     // no need to query roles
     roleQuery = {
       find: () => Promise.resolve([])
@@ -51,29 +50,29 @@ function validateEntry(pointers, text, parseServerSupportsPointerPermissions) {
 
     let user = text.substring(5);
     userQuery = new Parse.Query.or(
-      new Parse.Query(Parse.User).equalTo("username", user),
-      new Parse.Query(Parse.User).equalTo("objectId", user)
+      new Parse.Query(Parse.User).equalTo('username', user),
+      new Parse.Query(Parse.User).equalTo('objectId', user)
     );
-  } else if (text.startsWith("role:")) {
+  } else if (text.startsWith('role:')) {
     // no need to query users
     userQuery = {
       find: () => Promise.resolve([])
     };
     let role = text.substring(5);
     roleQuery = new Parse.Query.or(
-      new Parse.Query(Parse.Role).equalTo("name", role),
-      new Parse.Query(Parse.Role).equalTo("objectId", role)
+      new Parse.Query(Parse.Role).equalTo('name', role),
+      new Parse.Query(Parse.Role).equalTo('objectId', role)
     );
   } else {
     // query both
     userQuery = Parse.Query.or(
-      new Parse.Query(Parse.User).equalTo("username", text),
-      new Parse.Query(Parse.User).equalTo("objectId", text)
+      new Parse.Query(Parse.User).equalTo('username', text),
+      new Parse.Query(Parse.User).equalTo('objectId', text)
     );
 
     roleQuery = Parse.Query.or(
-      new Parse.Query(Parse.Role).equalTo("name", text),
-      new Parse.Query(Parse.Role).equalTo("objectId", text)
+      new Parse.Query(Parse.Role).equalTo('name', text),
+      new Parse.Query(Parse.Role).equalTo('objectId', text)
     );
   }
 
@@ -82,9 +81,9 @@ function validateEntry(pointers, text, parseServerSupportsPointerPermissions) {
     roleQuery.find({ useMasterKey: true })
   ]).then(([user, role]) => {
     if (user.length > 0) {
-      return { entry: user[0], type: "user" };
+      return { entry: user[0], type: 'user' };
     } else if (role.length > 0) {
-      return { entry: role[0], type: "role" };
+      return { entry: role[0], type: 'role' };
     } else {
       return Promise.reject();
     }

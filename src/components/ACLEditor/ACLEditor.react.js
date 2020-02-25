@@ -14,11 +14,11 @@ function validateEntry(text) {
   let userQuery;
   let roleQuery;
 
-  if (text === "*") {
-    return Promise.resolve({ entry: "*", type: 'public' });
+  if (text === '*') {
+    return Promise.resolve({ entry: '*', type: 'public' });
   }
 
-  if (text.startsWith("user:")) {
+  if (text.startsWith('user:')) {
     // no need to query roles
     roleQuery = {
       find: () => Promise.resolve([])
@@ -26,29 +26,29 @@ function validateEntry(text) {
 
     let user = text.substring(5);
     userQuery = new Parse.Query.or(
-      new Parse.Query(Parse.User).equalTo("username", user),
-      new Parse.Query(Parse.User).equalTo("objectId", user)
+      new Parse.Query(Parse.User).equalTo('username', user),
+      new Parse.Query(Parse.User).equalTo('objectId', user)
     );
-  } else if (text.startsWith("role:")) {
+  } else if (text.startsWith('role:')) {
     // no need to query users
     userQuery = {
       find: () => Promise.resolve([])
     };
     let role = text.substring(5);
     roleQuery = new Parse.Query.or(
-      new Parse.Query(Parse.Role).equalTo("name", role),
-      new Parse.Query(Parse.Role).equalTo("objectId", role)
+      new Parse.Query(Parse.Role).equalTo('name', role),
+      new Parse.Query(Parse.Role).equalTo('objectId', role)
     );
   } else {
     // query both
     userQuery = Parse.Query.or(
-      new Parse.Query(Parse.User).equalTo("username", text),
-      new Parse.Query(Parse.User).equalTo("objectId", text)
+      new Parse.Query(Parse.User).equalTo('username', text),
+      new Parse.Query(Parse.User).equalTo('objectId', text)
     );
 
     roleQuery = Parse.Query.or(
-      new Parse.Query(Parse.Role).equalTo("name", text),
-      new Parse.Query(Parse.Role).equalTo("objectId", text)
+      new Parse.Query(Parse.Role).equalTo('name', text),
+      new Parse.Query(Parse.Role).equalTo('objectId', text)
     );
   }
 

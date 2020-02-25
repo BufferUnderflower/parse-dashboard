@@ -11,8 +11,8 @@ import PropTypes  from 'prop-types'
 import Icon       from 'components/Icon/Icon.react'
 
 let Chip = ({ value, onClose }) => (
-  <div className={[styles.chip].join(" ")}>
-    <div className={[styles.content].join(" ")}>{value}</div>
+  <div className={[styles.chip].join(' ')}>
+    <div className={[styles.content].join(' ')}>{value}</div>
     <div onClick={e=>{
         try{
           e.stopPropagation();
